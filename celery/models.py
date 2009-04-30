@@ -2,6 +2,7 @@ from django.db import models
 from celery.registry import tasks
 from celery.managers import TaskManager, PeriodicTaskManager
 from django.utils.translation import ugettext_lazy as _
+from yadayada.models import PickledObjectField
 
 __all__ = ["TaskMeta", "PeriodicTaskMeta"]
 
@@ -10,6 +11,8 @@ class TaskMeta(models.Model):
     task_id = models.CharField(_(u"task id"), max_length=255, unique=True)
     is_done = models.BooleanField(_(u"is done"), default=False)
     date_done = models.DateTimeField(_(u"done at"), auto_now=True)
+    return_value = models.PickledObjectField(_(u"return value"))
+    exception = models.PickledObjectField(_(u"exception"))
 
     objects = TaskManager()
 

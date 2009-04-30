@@ -39,7 +39,7 @@ def mark_as_done(task_id, result):
     if result is None:
         result = True
     if TASK_META_USE_DB:
-        TaskMeta.objects.mark_as_done(task_id)
+        TaskMeta.objects.mark_as_done(task_id, result)
     else:
         cache_key = gen_task_done_cache_key(task_id)
         cache.set(cache_key, result)
