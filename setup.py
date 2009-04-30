@@ -60,6 +60,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'django-unittest-depth',
+        'yadayada',
         'simplejson',
         'carrot',
         'django',
