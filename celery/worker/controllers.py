@@ -1,3 +1,11 @@
+"""
+
+Worker Controller Threads
+
+Documentation for this module is in
+``docs/reference/celery.worker.controllers.rst``.
+
+"""
 from celery.backends import default_periodic_status_backend
 from Queue import Empty as QueueEmpty
 from datetime import datetime
@@ -17,6 +25,7 @@ class Mediator(threading.Thread):
         self.callback = callback
 
     def run(self):
+        """Run the thread. Not used directly, instead use :meth:`start`."""
         while True:
             if self._shutdown.isSet():
                 break
@@ -38,7 +47,8 @@ class Mediator(threading.Thread):
 class PeriodicWorkController(threading.Thread):
     """A thread that continuously checks if there are
     :class:`celery.task.PeriodicTask` tasks waiting for execution,
-    and executes them."""
+    and executes them. It also finds tasks in the hold queue that is
+    ready for execution and moves them to the bucket queue."""
 
     def __init__(self, bucket_queue, hold_queue):
         super(PeriodicWorkController, self).__init__()
@@ -48,7 +58,7 @@ class PeriodicWorkController(threading.Thread):
         self.bucket_queue = bucket_queue
 
     def run(self):
-        """Run when you use :meth:`Thread.start`"""
+        """Run the thread. Not used directly, instead use :meth:`start`."""
         while True:
             if self._shutdown.isSet():
                 break
@@ -58,6 +68,8 @@ class PeriodicWorkController(threading.Thread):
         self._stopped.set() # indicate that we are stopped
 
     def process_hold_queue(self):
+        """Finds paused tasks that are ready for execution and move
+        them to the bucket queue."""
         try:
             task, eta = self.hold_queue.get_nowait()
         except QueueEmpty:

@@ -1,3 +1,10 @@
+"""
+
+Jobs executable by the worker server.
+
+Documentation for this module is in ``docs/reference/celery.worker.job.rst``.
+
+"""
 from celery.conf import SEND_CELERY_TASK_ERROR_EMAILS
 from celery.registry import tasks
 from celery.datastructures import ExceptionInfo
