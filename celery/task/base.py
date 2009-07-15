@@ -66,6 +66,17 @@ class Task(object):
         Disable all error e-mails for this task (only applicable if
         ``settings.SEND_CELERY_ERROR_EMAILS`` is on.)
 
+    .. attribute:: max_retries
+
+        The maximum number of retries before we give up.
+
+    .. attribute:: auto_retry
+
+        If this is ``True`` the task will be automatically retried if it
+        raises an exception. The task will be retried as many times as the
+        :attr:`max_retries` attribute, and if this number of times is exceeded
+        the task will be marked as failed.
+
     :raises NotImplementedError: if the :attr:`name` attribute is not set.
 
     The resulting class is callable, which if called will apply the
@@ -110,6 +121,8 @@ class Task(object):
     priority = None
     ignore_result = False
     disable_error_emails = False
+    auto_retry = False
+    max_retries = 0
 
     def __init__(self):
         if not self.name:
