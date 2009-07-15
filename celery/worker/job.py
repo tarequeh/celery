@@ -32,6 +32,7 @@ celeryd at %%(hostname)s.
 """ % {"EMAIL_SIGNATURE_SEP": EMAIL_SIGNATURE_SEP}
 
 
+# TODO This should be refactored somehow.
 def jail(task_id, task_name, func, args, kwargs):
     """Wraps the task in a jail, which catches all exceptions, and
     saves the status and result of the task execution to the task

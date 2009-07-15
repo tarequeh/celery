@@ -10,6 +10,10 @@ from celery.registry import tasks
 from celery.serialization import pickle
 
 
+class MaxRetriesExceededError(Exception):
+    """Task has reached maximum retry count."""
+
+
 class Task(object):
     """A task that can be delayed for execution by the ``celery`` daemon.
 
@@ -124,6 +128,8 @@ class Task(object):
     auto_retry = False
     max_retries = 0
 
+    MaxRetriesExceededError = MaxRetriesExceededError
+
     def __init__(self):
         if not self.name:
             raise NotImplementedError("Tasks must define a name attribute.")
@@ -149,6 +155,39 @@ class Task(object):
 
         """
         return setup_logger(**kwargs)
+
+    def retry(self, *args, **kwargs):
+        """Retry task.
+
+        Example:
+
+            >>> class TwitterStatusesTask(Task):
+            ...     name = "twitter.get_statuses"
+            ...
+            ...     def run(self, username, **kwargs):
+            ...         try:
+            ...             statuses = Twitter(username).get_statuses()
+            ...         except TwitterFailWhaleError, e:
+            ...             self.retry(username, **kwargs)
+
+        :rasies MaxRetriesExceededError: if the max retry count defined in
+            :attr:`max_retries` has been exceeded.
+
+        """
+
+        task_id = kwargs.get("task_id")
+        retries = kwargs.get("retries", 0)
+
+        if max_retries and retries >= max_retries:
+            raise MaxRetriesExceededError(
+                    "Task %s[%s] has exceeded max retries %d" % (
+                        self.name, task_id, retries))
+
+        publisher = self.get_publisher()
+        #publisher.retry_task(
+        
+        publisher.close()
+        publisher.connection.close()
 
     def get_publisher(self):
         """Get a celery task message publisher.

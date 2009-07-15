@@ -1,6 +1,9 @@
 """celery.registry"""
+import re
 from celery import discovery
 from UserDict import UserDict
+
+RE_ILLEGAL_CLASS_CHARS = re.compile(r"[\W_]")
 
 
 class NotRegistered(Exception):
@@ -9,6 +12,10 @@ class NotRegistered(Exception):
 
 class AlreadyRegistered(Exception):
     """The task is already registered."""
+
+
+def name_to_clsname(name):
+    return "".join(map(str.capitalize, RE_ILLEGAL_CLASS_CHARS.split(name)))
 
 
 class TaskRegistry(UserDict):
@@ -47,11 +54,17 @@ class TaskRegistry(UserDict):
                     "Task with name %s is already registered." % name)
 
         if is_class:
-            self.data[name] = task() # instantiate Task class
+            taskcls = task
         else:
-            task.name = name
-            task.type = "regular"
-            self.data[name] = task
+            from celery.task.base import Task
+            clsname = name_to_clsname(name)
+            def runmethod(self, *args, **kwargs):
+                return task(*args, **kwargs)
+            taskcls = type(clsname, (Task, ), {"name": name,
+                                               "type": "regular",
+                                               "run": runmethod})()
+
+        self.data[name] = taskcls() # instantiate Task class
 
     def unregister(self, name):
         """Unregister task by name.
