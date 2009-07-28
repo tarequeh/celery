@@ -13,7 +13,7 @@ from celery.messaging import TaskConsumer
 from celery.conf import DAEMON_CONCURRENCY, DAEMON_LOG_FILE
 from celery.log import setup_logger
 from celery.pool import TaskPool
-from Queue import Queue
+from multiprocessing.queues import Queue
 import traceback
 import logging
 
@@ -151,14 +151,14 @@ class WorkController(object):
 
     .. attribute:: bucket_queue
 
-        The :class:`Queue.Queue` that holds tasks ready for immediate
-        processing.
+        The :class:`multiprocessing.queues.Queue` that holds tasks
+        ready for immediate processing.
 
     .. attribute:: hold_queue
 
-        The :class:`Queue.Queue` that holds paused tasks. Reasons for holding
-        back the task include waiting for ``eta`` to pass or the task is being
-        retried.
+        The :class:`multiprocessing.queues.Queue` that holds paused
+        tasks. Reasons for holding back the task include waiting for
+        ``eta`` to pass or the task is being retried.
 
     .. attribute:: periodic_work_controller
 

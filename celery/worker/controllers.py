@@ -4,15 +4,16 @@ Worker Controller Threads
 
 """
 from celery.backends import default_periodic_status_backend
-from Queue import Empty as QueueEmpty
 from datetime import datetime
 from multiprocessing import get_logger
+from multiprocessing.queues import Empty as QueueEmpty
+import multiprocessing
 import threading
 import time
 
 
-class InfinityThread(threading.Thread):
-    """Thread running an infinite loop which for every iteration
+class BackgroundProcess(multiprocessing.Process):
+    """Process running an infinite loop which for every iteration
     calls its :meth:`on_iteration` method.
 
     This also implements graceful shutdown of the thread by providing
@@ -22,10 +23,8 @@ class InfinityThread(threading.Thread):
     is_infinite = True
 
     def __init__(self):
-        super(InfinityThread, self).__init__()
-        self._shutdown = threading.Event()
-        self._stopped = threading.Event()
-        self.setDaemon(True)
+        super(BackgroundProcess, self).__init__()
+        self.daemon = True
 
     def run(self):
         """This is the body of the thread.
@@ -34,25 +33,21 @@ class InfinityThread(threading.Thread):
 
         """
         while self.is_infinite:
-            if self._shutdown.isSet():
-                break
             self.on_iteration()
-        self._stopped.set() # indicate that we are stopped
 
     def on_iteration(self):
         """This is the method called for every iteration and must be
-        implemented by every subclass of :class:`InfinityThread`."""
+        implemented by every subclass of :class:`BackgroundProcess`."""
         raise NotImplementedError(
                 "InfiniteThreads must implement on_iteration")
 
     def stop(self):
         """Gracefully shutdown the thread."""
-        self._shutdown.set()
-        self._stopped.wait() # block until this thread is done
+        self.terminate()
 
 
-class Mediator(InfinityThread):
-    """Thread continuously sending tasks in the queue to the pool.
+class Mediator(BackgroundProcess):
+    """Process continuously sending tasks in the queue to the pool.
 
     .. attribute:: bucket_queue
 
@@ -85,7 +80,7 @@ class Mediator(InfinityThread):
             self.callback(task)
 
 
-class PeriodicWorkController(InfinityThread):
+class PeriodicWorkController(BackgroundProcess):
     """A thread that continuously checks if there are
     :class:`celery.task.PeriodicTask` tasks waiting for execution,
     and executes them. It also finds tasks in the hold queue that is
