@@ -34,6 +34,10 @@
 
     Restart the worker server if it dies.
 
+.. cmdoption:: -R, --redirect
+
+    Redirect stdout and stderr to ``process.log``.
+
 .. cmdoption:: --discard
 
     Discard all waiting tasks before the daemon is started.
@@ -108,6 +112,9 @@ OPTION_LIST = (
             help="Discard all waiting tasks before the server is started. "
                  "WARNING: This is unrecoverable, and the tasks will be "
                  "deleted from the messaging server."),
+    optparse.make_option('-R', '--redirect', default=False,
+            action="store_true", dest="redirect",
+            help="Redirect stdout and stderr to process.log"),
     optparse.make_option('-s', '--statistics', default=USE_STATISTICS,
             action="store_true", dest="statistics",
             help="Collect statistics."),
@@ -180,7 +187,7 @@ def run_worker(concurrency=DAEMON_CONCURRENCY, detach=False,
         loglevel=DAEMON_LOG_LEVEL, logfile=DAEMON_LOG_FILE, discard=False,
         pidfile=DAEMON_PID_FILE, umask=0, uid=None, gid=None,
         supervised=False, working_directory=None, chroot=None,
-        statistics=None, **kwargs):
+        statistics=None, redirect=False, **kwargs):
     """Starts the celery worker server."""
 
     print("Celery %s is starting." % __version__)
@@ -250,6 +257,13 @@ def run_worker(concurrency=DAEMON_CONCURRENCY, detach=False,
                                 uid=uid,
                                 gid=gid)
         context.open()
+
+    # Redirect stdout and stderr to process.log
+    if redirect:
+        from celery.log import QueueLogger
+        queue_logger = QueueLogger.start()
+        sys.stdout = queue_logger
+        sys.stderr = queue_logger
 
     # Run the worker init handler.
     # (Usually imports task modules and such.)

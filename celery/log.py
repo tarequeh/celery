@@ -4,6 +4,8 @@ import sys
 import time
 import logging
 from celery.conf import LOG_FORMAT, DAEMON_LOG_LEVEL
+from multiprocessing.process import Process
+from multiprocessing.queues import SimpleQueue
 
 
 def setup_logger(loglevel=DAEMON_LOG_LEVEL, logfile=None, format=LOG_FORMAT,
@@ -49,3 +51,61 @@ def emergency_error(logfile, message):
                     "message": message})
     if logfh_needs_to_close:
         logfh.close()
+
+
+class Logwriter(Process):
+    """Process flushing log messages to a logfile."""
+
+    def start(self, log_queue, logfile="process.log"):
+        self.log_queue = log_queue
+        self.logfile = logfile
+        super(Logwriter, self).start()
+
+    def run(self):
+        self.process_logs(self.log_queue, self.logfile)
+
+    def process_logs(self, log_queue, logfile):
+        need_to_close_fh = False
+        logfh = logfile
+        if isinstance(logfile, basestring):
+            need_to_close_fh = True
+            logfh = open(logfile, "a")
+
+        logfh = open(logfile, "a")
+        while 1:
+            message = log_queue.get()
+            if message is None: # received sentinel
+                break
+            logfh.write(message)
+
+        log_queue.put(None) # cascade sentinel
+
+        if need_to_close_fh:
+            logfh.close()
+
+
+class QueueLogger(object):
+    """File like object logging contents to a queue,
+    which the :class:`Logwriter` later writes to disk."""
+
+    def __init__(self, log_queue, log_process):
+        self.log_queue = log_queue
+        self.log_process = log_process
+
+    @classmethod
+    def start(cls):
+        log_queue = SimpleQueue()
+        log_process = Logwriter()
+        log_process.start(log_queue)
+        return cls(log_queue, log_process)
+
+    def write(self, message):
+        self.log_queue.put(message)
+
+    def stop(self):
+        self.log_queue.put(None) # send sentinel
+
+    def flush(self):
+        """This filehandle does automatic flushing. So flush requests
+        are ignored."""
+        pass

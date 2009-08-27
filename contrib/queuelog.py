@@ -1,7 +1,7 @@
-import sys
 from multiprocessing.queues import SimpleQueue
 from multiprocessing.process import Process
 from multiprocessing.pool import Pool
+import sys
 
 
 class Logwriter(Process):
@@ -54,6 +54,8 @@ class QueueLogger(object):
         self.log_queue.put(None) # send sentinel
 
     def flush(self):
+        """This filehandle does automatic flushing. So flush requests
+        are ignored."""
         pass
 
 
