@@ -8,7 +8,7 @@ from celery import registry
 from celery.log import setup_logger
 from celery import messaging
 from celery.result import EagerResult
-from celery.backends import default_backend
+from celery.storage import default_storage
 from datetime import datetime, timedelta
 
 
@@ -229,7 +229,7 @@ class TestCeleryTasks(unittest.TestCase):
 
         self.assertFalse(task.is_done(presult.task_id))
         self.assertFalse(presult.is_done())
-        default_backend.mark_as_done(presult.task_id, result=None)
+        default_storage.mark_as_done(presult.task_id, result=None)
         self.assertTrue(task.is_done(presult.task_id))
         self.assertTrue(presult.is_done())
 

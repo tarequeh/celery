@@ -31,7 +31,7 @@ Django Models - celery.models
    
     Model for storing the result and status of a task.
     
-    *Note* Only used if you're running the ``database`` backend.
+    *Note* Only used if you're running the ``database`` storage backend.
 
     .. attribute:: task_id
 

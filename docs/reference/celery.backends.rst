@@ -1,8 +1,8 @@
 ===========================
-Backends - celery.backends
+Backends - celery.storage
 ===========================
 
-.. currentmodule:: celery.backends
+.. currentmodule:: celery.storage
 
-.. automodule:: celery.backends
+.. automodule:: celery.storage
     :members:

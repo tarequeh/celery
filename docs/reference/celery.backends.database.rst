@@ -1,8 +1,8 @@
 =============================================
-Backend: Database - celery.backends.database
+Backend: Database - celery.storage.database
 =============================================
 
-.. currentmodule:: celery.backends.database
+.. currentmodule:: celery.storage.database
 
-.. automodule:: celery.backends.database
+.. automodule:: celery.storage.database
     :members:

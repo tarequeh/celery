@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from multiprocessing import get_logger
 from celery.exceptions import RetryTaskError
 from celery.datastructures import ExceptionInfo
-from celery.backends import default_backend
+from celery.storage import default_storage
 from celery.loaders import current_loader
 from celery.monitoring import TaskTimerStats
 from celery import signals
@@ -222,7 +222,7 @@ class ExecuteWrapper(object):
         current_loader.on_task_init(task_id, fun)
 
         # Backend process cleanup
-        default_backend.process_cleanup()
+        default_storage.process_cleanup()
       
         # Send pre-run signal.
         signals.task_prerun.send(sender=fun, task_id=task_id, task=fun,
@@ -262,7 +262,7 @@ class ExecuteWrapper(object):
 
         """
         if not getattr(self.fun, "ignore_result", False):
-            default_backend.mark_as_done(self.task_id, retval)
+            default_storage.mark_as_done(self.task_id, retval)
 
         # Run success handler last to be sure the status is saved.
         success_handler = getattr(self.fun, "on_success", noop)
@@ -279,7 +279,7 @@ class ExecuteWrapper(object):
         # RetryTaskError stores both a small message describing the retry
         # and the original exception.
         message, orig_exc = exc.args
-        default_backend.mark_as_retry(self.task_id, orig_exc, strtb)
+        default_storage.mark_as_retry(self.task_id, orig_exc, strtb)
 
         # Create a simpler version of the RetryTaskError that stringifies
         # the original exception instead of including the exception instance.
@@ -304,7 +304,7 @@ class ExecuteWrapper(object):
 
         # mark_as_failure returns an exception that is guaranteed to
         # be pickleable.
-        stored_exc = default_backend.mark_as_failure(self.task_id, exc, strtb)
+        stored_exc = default_storage.mark_as_failure(self.task_id, exc, strtb)
 
         # wrap exception info + traceback and return it to caller.
         retval = ExceptionInfo((type_, stored_exc, tb))

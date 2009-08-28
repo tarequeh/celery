@@ -274,8 +274,8 @@ You need a configuration file named ``celeryconfig.py``, either in the
 directory you run ``celeryd`` in, or in a Python library path where it is
 able to find it. The configuration file can contain any of the settings
 described in :mod:`celery.conf`, and in additional if you're using the
-database backend you have to configure the database. Here is an example
-configuration using the database backend with MySQL:
+database storage backend you have to configure the database. Here is an
+example configuration using the database backend with MySQL:
 
 .. code-block:: python
 

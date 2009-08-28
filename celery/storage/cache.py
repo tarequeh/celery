@@ -1,6 +1,6 @@
-"""celery.backends.cache"""
+"""celery.storage.cache"""
 from django.core.cache import cache
-from celery.backends.base import KeyValueStoreBackend
+from celery.storage.base import KeyValueStoreBackend
 
 
 class Backend(KeyValueStoreBackend):

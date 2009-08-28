@@ -203,9 +203,9 @@ You only need three simple steps to use celery with your Django project.
 That's it.
 
 There are more options available, like how many processes you want to process
-work in parallel (the ``CELERY_CONCURRENCY`` setting), and the backend used
-for storing task statuses. But for now, this should do. For all of the options
-available, please consult the `API Reference`_
+work in parallel (the ``CELERY_CONCURRENCY`` setting), and the storage backend
+used for storing task statuses. But for now, this should do. For all of the
+options available, please consult the `API Reference`_
 
 **Note**: If you're using SQLite as the Django database back-end,
 ``celeryd`` will only be able to process one task at a time, this is

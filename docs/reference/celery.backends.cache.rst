@@ -1,8 +1,8 @@
 =======================================
-Backend: Cache - celery.backends.cache
+Backend: Cache - celery.storage.cache
 =======================================
 
-.. currentmodule:: celery.backends.cache
+.. currentmodule:: celery.storage.cache
 
-.. automodule:: celery.backends.cache
+.. automodule:: celery.storage.cache
     :members:

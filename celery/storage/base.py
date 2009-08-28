@@ -1,4 +1,4 @@
-"""celery.backends.base"""
+"""celery.storage.base"""
 import time
 import operator
 from celery.serialization import pickle
@@ -8,7 +8,7 @@ from celery.exceptions import TimeoutError
 
 
 class BaseBackend(object):
-    """The base backend class. All backends should inherit from this."""
+    """The base storage class."""
 
     capabilities = []
     TimeoutError = TimeoutError

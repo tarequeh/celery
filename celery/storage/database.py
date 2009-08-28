@@ -1,10 +1,10 @@
-"""celery.backends.database"""
+"""celery.storage.database"""
 from celery.models import TaskMeta, PeriodicTaskMeta
-from celery.backends.base import BaseBackend
+from celery.storage.base import BaseBackend
 
 
 class Backend(BaseBackend):
-    """The database backends. Using Django models to store task metadata."""
+    """The database storage; Using Django models to store task metadata."""
 
     capabilities = ["ResultStore", "PeriodicStatus"]
 

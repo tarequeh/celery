@@ -1,5 +1,5 @@
 import unittest
-from celery.backends.database import Backend
+from celery.storage.database import Backend
 from celery.utils import gen_unique_id
 from celery.task import PeriodicTask
 from celery import registry

@@ -1,8 +1,8 @@
 =======================================
-Backend: AMQP - celery.backends.amqp
+Backend: AMQP - celery.storage.amqp
 =======================================
 
-.. currentmodule:: celery.backends.amqp
+.. currentmodule:: celery.storage.amqp
 
-.. automodule:: celery.backends.amqp
+.. automodule:: celery.storage.amqp
     :members:

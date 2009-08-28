@@ -3,7 +3,7 @@
 Worker Controller Threads
 
 """
-from celery.backends import default_periodic_status_backend
+from celery.storage import default_periodic_status_backend
 from Queue import Empty as QueueEmpty
 from datetime import datetime
 from multiprocessing import get_logger

@@ -1,10 +1,10 @@
 =====================================
-Backend: Base - celery.backends.base
+Backend: Base - celery.storage.base
 =====================================
 
-.. currentmodule:: celery.backends.base
+.. currentmodule:: celery.storage.base
 
-.. automodule:: celery.backends.base
+.. automodule:: celery.storage.base
     :members:
 
 

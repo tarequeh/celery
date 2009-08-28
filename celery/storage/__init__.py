@@ -1,11 +1,13 @@
-"""celery.backends"""
+"""celery.storage"""
 from functools import partial
 from celery.loaders import settings
 import sys
 
-DEFAULT_BACKEND = "database"
+DEFAULT_STORAGE = "database"
 DEFAULT_PERIODIC_STATUS_BACKEND = "database"
-CELERY_BACKEND = getattr(settings, "CELERY_BACKEND", DEFAULT_BACKEND)
+CELERY_STORAGE = getattr(settings, "CELERY_STORAGE",
+                    getattr(settings, "CELERY_BACKEND",
+                            DEFAULT_STORAGE))
 CELERY_PERIODIC_STATUS_BACKEND = getattr(settings,
                                     "CELERY_PERIODIC_STATUS_BACKEND",
                                     DEFAULT_PERIODIC_STATUS_BACKEND)
@@ -15,23 +17,23 @@ def get_backend_cls(backend):
     """Get backend class by name.
 
     If the name does not include "``.``" (is not fully qualified),
-    ``"celery.backends."`` will be prepended to the name. e.g.
-    ``"database"`` becomes ``"celery.backends.database"``.
+    ``"celery.storage."`` will be prepended to the name. e.g.
+    ``"database"`` becomes ``"celery.storage.database"``.
 
     """
     if backend.find(".") == -1:
-        backend = "celery.backends.%s" % backend
+        backend = "celery.storage.%s" % backend
     __import__(backend)
     backend_module = sys.modules[backend]
     return getattr(backend_module, "Backend")
 
 """
-.. function:: get_default_backend_cls()
+.. function:: get_default_storage_cls()
 
-    Get the backend class specified in :setting:`CELERY_BACKEND`.
+    Get the backend class specified in :setting:`CELERY_STORAGE`.
 
 """
-get_default_backend_cls = partial(get_backend_cls, CELERY_BACKEND)
+get_default_storage_cls = partial(get_backend_cls, CELERY_STORAGE)
 
 
 """
@@ -46,13 +48,13 @@ get_default_periodicstatus_backend_cls = partial(get_backend_cls,
 
 
 """
-.. class:: DefaultBackend
+.. class:: DefaultStorage
 
-    The default backend class used for storing task results and status,
-    specified in :setting:`CELERY_BACKEND`.
+    The default storage backend class used for storing task results and
+    status, specified in :setting:`CELERY_STORAGE`.
 
 """
-DefaultBackend = get_default_backend_cls()
+DefaultStorage = get_default_storage_cls()
 
 
 """
@@ -65,12 +67,12 @@ DefaultBackend = get_default_backend_cls()
 DefaultPeriodicStatusBackend = get_default_periodicstatus_backend_cls()
 
 """
-.. data:: default_backend
+.. data:: default_storage
 
-    An instance of :class:`DefaultBackend`.
+    An instance of :class:`DefaultStorage`.
 
 """
-default_backend = DefaultBackend()
+default_storage = DefaultStorage()
 
 """
 .. data:: default_periodic_status_backend

@@ -1,8 +1,8 @@
 ===============================================
-Backend: Tokyo Tyrant - celery.backends.tyrant
+Backend: Tokyo Tyrant - celery.storage.tyrant
 ===============================================
 
-.. currentmodule:: celery.backends.tyrant
+.. currentmodule:: celery.storage.tyrant
 
-.. automodule:: celery.backends.tyrant
+.. automodule:: celery.storage.tyrant
     :members:

@@ -1,5 +1,5 @@
 import unittest
-from celery.backends import default_backend
+from celery.storage import default_storage
 from celery.result import AsyncResult
 from celery.result import TaskSetResult
 from celery.result import TimeoutError
@@ -12,9 +12,9 @@ def mock_task(name, status, result):
 
 def save_result(task):
     if task["status"] == "DONE":
-        default_backend.mark_as_done(task["id"], task["result"])
+        default_storage.mark_as_done(task["id"], task["result"])
     else:
-        default_backend.mark_as_failure(task["id"], task["result"])
+        default_storage.mark_as_failure(task["id"], task["result"])
 
 
 def make_mock_taskset(size=10):

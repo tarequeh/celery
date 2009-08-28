@@ -29,12 +29,12 @@
     celery.worker.controllers
     celery.pool
     celery.supervisor
-    celery.backends
-    celery.backends.base
-    celery.backends.database
-    celery.backends.cache
-    celery.backends.amqp
-    celery.backends.tyrant
+    celery.storage
+    celery.storage.base
+    celery.storage.database
+    celery.storage.cache
+    celery.storage.amqp
+    celery.storage.tyrant
     celery.conf
     celery.datastructures
     celery.log

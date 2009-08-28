@@ -357,8 +357,8 @@ arguments, so be sure to flush your task queue before you upgrade.
   version to 0.2. This is a pre-release.
 
 * ``celery.task.mark_as_read()`` and ``celery.task.mark_as_failure()`` has
-  been removed. Use ``celery.backends.default_backend.mark_as_read()``, 
-  and ``celery.backends.default_backend.mark_as_failure()`` instead.
+  been removed. Use ``celery.storage.default_storage.mark_as_read()``, 
+  and ``celery.storage.default_storage.mark_as_failure()`` instead.
 
 0.1.15 [2009-05-19 04:13 P.M CET]
 ---------------------------------
@@ -426,9 +426,9 @@ arguments, so be sure to flush your task queue before you upgrade.
   a new backend for Tokyo Tyrant. You can set the backend in your django
   settings file. e.g::
 
-		CELERY_BACKEND = "database"; # Uses the database
-		CELERY_BACKEND = "cache"; # Uses the django cache framework
-		CELERY_BACKEND = "tyrant"; # Uses Tokyo Tyrant
+		CELERY_STORAGE = "database"; # Uses the database
+		CELERY_STORAGE = "cache"; # Uses the django cache framework
+		CELERY_STORAGE = "tyrant"; # Uses Tokyo Tyrant
 		TT_HOST = "localhost"; # Hostname for the Tokyo Tyrant server.
 		TT_PORT = 6657; # Port of the Tokyo Tyrant server.
 

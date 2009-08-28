@@ -1,7 +1,7 @@
-"""celery.backends.amqp"""
+"""celery.storage.amqp"""
 from carrot.connection import DjangoBrokerConnection
 from carrot.messaging import Consumer, Publisher
-from celery.backends.base import BaseBackend
+from celery.storage.base import BaseBackend
 
 RESULTSTORE_EXCHANGE = "celeryresults"
 

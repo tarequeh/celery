@@ -7,7 +7,7 @@ from carrot.connection import DjangoBrokerConnection
 from celery.messaging import TaskConsumer
 from celery.conf import AMQP_CONNECTION_TIMEOUT
 from celery.registry import tasks
-from celery.backends import default_backend
+from celery.storage import default_storage
 from celery.task.base import Task, TaskSet, PeriodicTask
 from celery.task.base import ExecuteRemoteTask
 from celery.task.base import AsynchronousMapTask
@@ -40,7 +40,7 @@ def is_done(task_id):
     :rtype: bool
 
     """
-    return default_backend.is_done(task_id)
+    return default_storage.is_done(task_id)
 
 
 def dmap(func, args, timeout=None):

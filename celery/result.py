@@ -3,7 +3,7 @@
 Asynchronous result types.
 
 """
-from celery.backends import default_backend
+from celery.storage import default_storage
 from celery.datastructures import PositionQueue
 from celery.exceptions import TimeoutError
 from itertools import imap
@@ -141,12 +141,12 @@ class AsyncResult(BaseAsyncResult):
 
     .. attribute:: backend
 
-        Instance of :class:`celery.backends.DefaultBackend`.
+        Instance of :class:`celery.storage.DefaultBackend`.
 
     """
 
     def __init__(self, task_id):
-        super(AsyncResult, self).__init__(task_id, backend=default_backend)
+        super(AsyncResult, self).__init__(task_id, backend=default_storage)
 
 
 class TaskSetResult(object):

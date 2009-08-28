@@ -1,6 +1,6 @@
-"""celery.backends.tyrant"""
+"""celery.storage.tyrant"""
 from django.core.exceptions import ImproperlyConfigured
-from celery.backends.base import KeyValueStoreBackend
+from celery.storage.base import KeyValueStoreBackend
 from celery.loaders import settings
 
 try:
