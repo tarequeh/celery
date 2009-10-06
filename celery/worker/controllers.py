@@ -116,7 +116,7 @@ class PeriodicWorkController(BackgroundThread):
 
     def on_start(self):
         """Do backend-specific periodic task initialization."""
-        default_periodic_status_backend.init_periodic_tasks()
+        pass
 
     def on_iteration(self):
         """Run periodic tasks and process the hold queue."""
@@ -135,7 +135,7 @@ class PeriodicWorkController(BackgroundThread):
 
     def run_periodic_tasks(self):
         logger = get_default_logger()
-        applied = default_periodic_status_backend.run_periodic_tasks()
+        applied = []; #default_periodic_status_backend.run_periodic_tasks()
         for task, task_id in applied:
             logger.debug(
                 "PeriodicWorkController: Periodic task %s applied (%s)" % (

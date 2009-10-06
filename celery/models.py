@@ -41,41 +41,7 @@ class TaskMeta(models.Model):
         return u"<Task: %s done:%s>" % (self.task_id, self.status)
 
 
-class PeriodicTaskMeta(models.Model):
-    """Information about a Periodic Task."""
-    name = models.CharField(_(u"name"), max_length=255, unique=True)
-    last_run_at = models.DateTimeField(_(u"last time run"),
-                                       blank=True,
-                                       default=datetime.fromtimestamp(0))
-    total_run_count = models.PositiveIntegerField(_(u"total run count"),
-                                                  default=0)
-
-    objects = PeriodicTaskManager()
-
-    class Meta:
-        """Model meta-data."""
-        verbose_name = _(u"periodic task")
-        verbose_name_plural = _(u"periodic tasks")
-
-    def __unicode__(self):
-        return u"<PeriodicTask: %s [last-run:%s, total-run:%d]>" % (
-                self.name, self.last_run_at, self.total_run_count)
-
-    def delay(self, *args, **kwargs):
-        """Apply the periodic task immediately."""
-        self.task.delay()
-        self.total_run_count = self.total_run_count + 1
-        self.save()
-
-    @property
-    def task(self):
-        """The entry registered in the task registry for this task."""
-        return tasks[self.name]
-
-
 if (django.VERSION[0], django.VERSION[1]) >= (1, 1):
     # keep models away from syncdb/reset if database backend is not being used.
     if conf.CELERY_BACKEND != 'database':
         TaskMeta._meta.managed = False
-    if conf.CELERY_PERIODIC_STATUS_BACKEND != 'database':
-        PeriodicTaskMeta._meta.managed = False
