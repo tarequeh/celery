@@ -3,10 +3,11 @@
 Worker Controller Threads
 
 """
-from celery.backends import default_periodic_status_backend
 from Queue import Empty as QueueEmpty
 from datetime import datetime
 from celery.log import get_default_logger
+from celery.periodic import PeriodicTaskRunner
+from celery import conf
 import traceback
 import threading
 import time
@@ -113,21 +114,21 @@ class PeriodicWorkController(BackgroundThread):
         super(PeriodicWorkController, self).__init__()
         self.hold_queue = hold_queue
         self.bucket_queue = bucket_queue
-
-    def on_start(self):
-        """Do backend-specific periodic task initialization."""
-        pass
+        self.periodic = None
+        if conf.CELERY_RUN_PERIODIC_TASKS:
+            self.periodic = PeriodicTaskRunner()
 
     def on_iteration(self):
         """Run periodic tasks and process the hold queue."""
         logger = get_default_logger()
-        logger.debug("PeriodicWorkController: Running periodic tasks...")
-        try:
-            self.run_periodic_tasks()
-        except Exception, exc:
-            logger.error(
-                "PeriodicWorkController got exception: %s\n%s" % (
-                    exc, traceback.format_exc()))
+        if self.periodic:
+            logger.debug("PeriodicWorkController: Running periodic tasks...")
+            try:
+                self.run_periodic_tasks()
+            except Exception, exc:
+                logger.error(
+                    "PeriodicWorkController got exception: %s\n%s" % (
+                        exc, traceback.format_exc()))
         logger.debug("PeriodicWorkController: Processing hold queue...")
         self.process_hold_queue()
         logger.debug("PeriodicWorkController: Going to sleep...")
@@ -135,11 +136,16 @@ class PeriodicWorkController(BackgroundThread):
 
     def run_periodic_tasks(self):
         logger = get_default_logger()
-        applied = []; #default_periodic_status_backend.run_periodic_tasks()
+        self.periodic.refresh_statuses()
+        applied = self.periodic.run_waiting_tasks()
         for task, task_id in applied:
             logger.debug(
                 "PeriodicWorkController: Periodic task %s applied (%s)" % (
                     task.name, task_id))
+
+    def on_stop(self):
+        if self.periodic:
+        	self.periodic.statuses.save_atexit()
 
     def process_hold_queue(self):
         """Finds paused tasks that are ready for execution and move

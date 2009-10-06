@@ -30,6 +30,14 @@
 
     Run in the background as a daemon.
 
+.. cmdoption:: -P, --periodic
+
+    Make this worker trigger periodic tasks.
+    
+    Please note that only one worker should have this role, and that running
+    celeryd with this option more than once will result in periodic tasks
+    being triggered more than once.
+
 .. cmdoption:: -S, --supervised
 
     Restart the worker server if it dies.
@@ -97,6 +105,7 @@ Configuration ->
     * Consumer -> Queue:%(consumer_queue)s Routing:%(consumer_rkey)s
     * Concurrency -> %(concurrency)s
     * Statistics -> %(statistics)s
+    * Periodic Task Master -> %(periodic_master)s
 """.strip()
 
 OPTION_LIST = (
@@ -126,6 +135,9 @@ OPTION_LIST = (
     optparse.make_option('-S', '--supervised', default=False,
             action="store_true", dest="supervised",
             help="Restart the worker server if it dies."),
+    optparse.make_option('-P', '--periodic', default=False,
+            action="store_true", dest="periodic",
+            help="Make this worker the periodic task master"),
     optparse.make_option('-u', '--uid', default=None,
             action="store", dest="uid",
             help="User-id to run celeryd as when in daemon mode."),
@@ -180,7 +192,7 @@ def run_worker(concurrency=DAEMON_CONCURRENCY, detach=False,
         loglevel=DAEMON_LOG_LEVEL, logfile=DAEMON_LOG_FILE, discard=False,
         pidfile=DAEMON_PID_FILE, umask=0, uid=None, gid=None,
         supervised=False, working_directory=None, chroot=None,
-        statistics=None, **kwargs):
+        periodic=False, statistics=None, **kwargs):
     """Starts the celery worker server."""
 
     # set SIGCLD back to the default SIG_DFL (before python-daemon overrode
@@ -194,6 +206,9 @@ def run_worker(concurrency=DAEMON_CONCURRENCY, detach=False,
 
     if statistics is not None:
         settings.CELERY_STATISTICS = statistics
+
+    if periodic is not None:
+    	settings.CELERY_RUN_PERIODIC_TASKS = True
 
     if not concurrency:
         concurrency = multiprocessing.cpu_count()
@@ -233,6 +248,7 @@ def run_worker(concurrency=DAEMON_CONCURRENCY, detach=False,
             "concurrency": concurrency,
             "loglevel": loglevel,
             "pidfile": pidfile,
+            "periodic_master": periodic,
             "statistics": settings.CELERY_STATISTICS and "ON" or "OFF",
     })
 

@@ -21,7 +21,7 @@ DEFAULT_AMQP_CONNECTION_RETRY = True
 DEFAULT_AMQP_CONNECTION_MAX_RETRIES = 100
 DEFAULT_TASK_SERIALIZER = "pickle"
 DEFAULT_BACKEND = "database"
-DEFAULT_PERIODIC_STATUS_BACKEND = "database"
+DEFAULT_RUN_PERIODIC_TASKS = False
 
 
 """
@@ -245,14 +245,15 @@ CELERY_BACKEND = getattr(settings, "CELERY_BACKEND", DEFAULT_BACKEND)
 
 """
 
-.. data:: CELERY_PERIODIC_STATUS_BACKEND
+.. data:: CELERY_RUN_PERIODIC_TASKS
 
-The backend used to store the status of periodic tasks.
+If True, this worker is used to trigger periodic tasks.
+(**WARNING**: Only one worker should have this role.)
 
 """
-CELERY_PERIODIC_STATUS_BACKEND = getattr(settings,
-                                    "CELERY_PERIODIC_STATUS_BACKEND",
-                                    DEFAULT_PERIODIC_STATUS_BACKEND)
+CELERY_RUN_PERIODIC_TASKS = getattr(settings,
+                                    "CELERY_RUN_PERIODIC_TASKS",
+                                    DEFAULT_RUN_PERIODIC_TASKS)
 
 
 """
