@@ -1,0 +1,10 @@
+AMQP_SERVER = "localhost"
+AMQP_PORT = "5672"
+AMQP_VHOST = "/"
+AMQP_USER = "guest"
+AMQP_PASSWORD = "guest"
+CELERY_BACKEND = "amqp"
+CELERYD_CONCURRENCY = 8
+DATABASE_ENGINE="sqlite3"
+DATABASE_NAME="celerydb.db"
+CELERY_IMPORTS = ("app1.tasks", )
