@@ -92,3 +92,16 @@ class StatsConsumer(Consumer):
     exchange_type = "direct"
     decoder = pickle.loads
     no_ack=True
+
+
+class MonitorPublisher(Publisher):
+    exchange = "celerymon"
+    routing_key = "task"
+
+
+class MonitorConsumer(Consumer):
+    queue = "celerymon"
+    exchange = "celerymon"
+    routing_key = "task"
+    exchange_type = "direct"
+    no_ack=True

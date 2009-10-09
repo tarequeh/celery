@@ -3,13 +3,15 @@
 Custom Datastructures
 
 """
-from UserList import UserList
 from Queue import Queue
 from Queue import Empty as QueueEmpty
+from operator import itemgetter
+import UserList
+import UserDict
 import traceback
 
 
-class PositionQueue(UserList):
+class PositionQueue(UserList.UserList):
     """A positional queue of a specific length, with slots that are either
     filled or unfilled. When all of the positions are filled, the queue
     is considered :meth:`full`.
@@ -146,3 +148,15 @@ class SharedCounter(object):
 
     def __repr__(self):
         return "<SharedCounter: int(%s)>" % str(int(self))
+
+
+class AttributeDict(UserDict.UserDict):
+    _setup = False
+    fields = []
+
+    def __init__(self, **kwargs):
+        self.data = dict(kwargs)
+        if not self.__class__._setup:
+            [setattr(self.__class__, field, property(itemgetter(field)))
+                for field in self.__class__.fields]
+            self.__class__._setup = True

@@ -83,7 +83,7 @@ class TaskWrapper(object):
     fail_email_body = TASK_FAIL_EMAIL_BODY
 
     def __init__(self, task_name, task_id, args, kwargs,
-            on_ack=noop, retries=0, **opts):
+            on_ack=noop, retries=0, callbacks=None, errbacks=None, **opts):
         self.task_name = task_name
         self.task_id = task_id
         self.retries = retries
@@ -92,6 +92,8 @@ class TaskWrapper(object):
         self.logger = kwargs.get("logger")
         self.on_ack = on_ack
         self.executed = False
+        self.callbacks = callbacks or []
+        self.errbacks = errbacks or []
         for opt in ("success_msg", "fail_msg", "fail_email_subject",
                 "fail_email_body"):
             setattr(self, opt, opts.get(opt, getattr(self, opt, None)))
@@ -108,7 +110,8 @@ class TaskWrapper(object):
                 self.args, self.kwargs)
 
     @classmethod
-    def from_message(cls, message, message_data, logger=None):
+    def from_message(cls, message, message_data, logger=None,
+            callbacks=None, errbacks=None):
         """Create a :class:`TaskWrapper` from a task message sent by
         :class:`celery.messaging.TaskPublisher`.
 
@@ -128,8 +131,10 @@ class TaskWrapper(object):
         kwargs = dict((key.encode("utf-8"), value)
                         for key, value in kwargs.items())
 
+
         return cls(task_name, task_id, args, kwargs,
-                    retries=retries, on_ack=message.ack, logger=logger)
+                    retries=retries, on_ack=message.ack, logger=logger,
+                    callbacks=callbacks, errbacks=errbacks)
 
     def extend_with_default_kwargs(self, loglevel, logfile):
         """Extend the tasks keyword arguments with standard task arguments.
@@ -200,7 +205,8 @@ class TaskWrapper(object):
 
         wrapper = self._executeable(loglevel, logfile)
         return pool.apply_async(wrapper,
-                callbacks=[self.on_success], errbacks=[self.on_failure],
+                callbacks=[self.on_success],
+                errbacks=[self.on_failure],
                 on_ack=self.on_ack)
 
     def on_success(self, ret_value):
@@ -211,6 +217,8 @@ class TaskWrapper(object):
                 "name": self.task_name,
                 "return_value": ret_value}
         self.logger.info(msg)
+        for callback in self.callbacks:
+            callback(self, ret_value)
 
     def on_failure(self, exc_info):
         """The handler used if the task raised an exception."""
@@ -234,3 +242,6 @@ class TaskWrapper(object):
             subject = self.fail_email_subject.strip() % context
             body = self.fail_email_body.strip() % context
             mail_admins(subject, body, fail_silently=True)
+
+        for errback in self.errbacks:
+            errback(self, exc_info)

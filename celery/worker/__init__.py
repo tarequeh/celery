@@ -14,7 +14,9 @@ from celery.log import setup_logger
 from celery.pool import TaskPool
 from celery.utils import retry_over_time
 from celery.datastructures import SharedCounter
+from celery.monitor import TaskState, StatePublisher
 from Queue import Queue
+from datetime import datetime
 import traceback
 import logging
 import socket
@@ -46,10 +48,12 @@ class AMQPListener(object):
             initial_prefetch_count=2):
         self.amqp_connection = None
         self.task_consumer = None
+        self.state_publisher = None
         self.bucket_queue = bucket_queue
         self.hold_queue = hold_queue
         self.logger = logger
         self.prefetch_count = SharedCounter(initial_prefetch_count)
+        self.hostname = socket.gethostname()
 
     def start(self):
         """Start the consumer.
@@ -92,9 +96,13 @@ class AMQPListener(object):
         otherwise we move it the bucket queue for immediate processing.
 
         """
+
         try:
             task = TaskWrapper.from_message(message, message_data,
-                                            logger=self.logger)
+                                        logger=self.logger,
+                                        #callbacks=[self.publish_on_success],
+                                        #errbacks=[self.publish_on_failure])
+                                        )
         except NotRegistered, exc:
             self.logger.error("Unknown task ignored: %s" % (exc))
             return
@@ -109,6 +117,8 @@ class AMQPListener(object):
             self.logger.info("Got task from broker: %s[%s]" % (
                     task.task_name, task.task_id))
             self.bucket_queue.put(task)
+
+        self.publish_on_receive(task, eta)
 
     def close_connection(self):
         """Close the AMQP connection."""
@@ -134,6 +144,8 @@ class AMQPListener(object):
         self.amqp_connection = self._open_connection()
         self.task_consumer = get_consumer_set(connection=self.amqp_connection)
         self.task_consumer.register_callback(self.receive_message)
+        #conn2 = self._open_connection()
+        self.state_publisher = StatePublisher()
 
     def _open_connection(self):
         """Retries connecting to the AMQP broker over time.
@@ -161,6 +173,28 @@ class AMQPListener(object):
                                max_retries=AMQP_CONNECTION_MAX_RETRIES)
         self.logger.debug("AMQPListener: Connection Established.")
         return conn
+
+    def publish_on_receive(self, task, eta=None):
+        self._publish_state("received", task, eta=eta)
+
+    def publish_on_success(self, task, result):
+        self._publish_state("succeeded", task, result=result)
+
+    def publish_on_failure(self, task, exc_info):
+        self._publish_state("failed", task)
+
+    def _publish_state(self, state, task, eta=None, result=None, **extra):
+        task_state = dict(state=state,
+                          time=datetime.now(),
+                          task_id=task.task_id,
+                          task_name=task.task_name,
+                          args=task.args,
+                          kwargs=task.kwargs,
+                          result=result,
+                          eta=eta)
+        task_state.update(extra)
+        self.state_publisher.publish(task_state)
+
 
 
 class WorkController(object):
