@@ -1,5 +1,5 @@
 """celery.backends.database"""
-from celery.models import TaskMeta, PeriodicTaskMeta
+from celery.models import TaskMeta, TaskSetMeta, PeriodicTaskMeta
 from celery.backends.base import BaseBackend
 
 
@@ -40,6 +40,11 @@ class Backend(BaseBackend):
                                       traceback=traceback)
         return result
 
+    def store_taskset(self, taskset_id, result):
+        """Store the result of an executed taskset."""
+        TaskSetMeta.objects.store_result(taskset_id, result)
+        return result
+
     def is_done(self, task_id):
         """Returns ``True`` if task with ``task_id`` has been executed."""
         return self.get_status(task_id) == "DONE"
@@ -69,6 +74,23 @@ class Backend(BaseBackend):
             self._cache[task_id] = meta
         return meta
 
+    def get_taskset(self, taskset_id):
+        """Get the result for a taskset."""
+        meta = self._get_taskset_meta_for(taskset_id)
+        if meta:
+            return meta.result
+
+    def _get_taskset_meta_for(self, taskset_id):
+        """Get taskset metadata for a taskset by id."""
+        if taskset_id in self._cache:
+            return self._cache[taskset_id]
+        meta = TaskSetMeta.objects.get_taskset(taskset_id)
+        if meta:
+            self._cache[taskset_id] = meta
+            return meta
+
     def cleanup(self):
         """Delete expired metadata."""
         TaskMeta.objects.delete_expired()
+        TaskSetMeta.objects.delete_expired()
+

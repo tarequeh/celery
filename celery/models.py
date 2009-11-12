@@ -6,7 +6,7 @@ Django Models.
 import django
 from django.db import models
 from celery.registry import tasks
-from celery.managers import TaskManager, PeriodicTaskManager
+from celery.managers import TaskManager, TaskSetManager, PeriodicTaskManager
 from celery.fields import PickledObjectField
 from celery import conf
 from django.utils.translation import ugettext_lazy as _
@@ -40,6 +40,21 @@ class TaskMeta(models.Model):
     def __unicode__(self):
         return u"<Task: %s done:%s>" % (self.task_id, self.status)
 
+class TaskSetMeta(models.Model):
+    """TaskSet result"""
+    taskset_id = models.CharField(_(u"task id"), max_length=255, unique=True)
+    result = PickledObjectField()
+    date_done = models.DateTimeField(_(u"done at"), auto_now=True)
+
+    objects = TaskSetManager()
+
+    class Meta:
+        """Model meta-data."""
+        verbose_name = _(u"taskset meta")
+        verbose_name_plural = _(u"taskset meta")
+
+    def __unicode__(self):
+        return u"<TaskSet: %s>" % (self.taskset_id)
 
 class PeriodicTaskMeta(models.Model):
     """Information about a Periodic Task."""
@@ -77,5 +92,6 @@ if (django.VERSION[0], django.VERSION[1]) >= (1, 1):
     # keep models away from syncdb/reset if database backend is not being used.
     if conf.CELERY_BACKEND != 'database':
         TaskMeta._meta.managed = False
+        TaskSetMeta._meta.managed = False
     if conf.CELERY_PERIODIC_STATUS_BACKEND != 'database':
         PeriodicTaskMeta._meta.managed = False
