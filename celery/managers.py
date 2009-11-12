@@ -1,6 +1,6 @@
 """celery.managers"""
-from django.db import models
-from django.db import connection, transaction
+from django.db import models, connection, transaction
+from django.db.models.query import QuerySet
 from celery.registry import tasks
 from celery.conf import TASK_RESULT_EXPIRES
 from datetime import datetime, timedelta
@@ -36,7 +36,7 @@ class ExtendedManager(models.Manager):
     def get_query_set(self):
         return ExtendedQuerySet(self.model)
 
-    def upate_or_create(self, **kwargs):
+    def update_or_create(self, **kwargs):
         update_method = self._update_or_create
         if kwargs.pop("exception_retry", False):
             update_method = self._update_or_create_safe
