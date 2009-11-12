@@ -12,6 +12,51 @@ import random
 SERVER_DRIFT = timedelta(seconds=random.vonmisesvariate(1, 4))
 
 
+def update_with_dict(obj, fields):
+    [setattr(obj, name, val) for name, val in fields.items()]
+    obj.save()
+    return obj
+
+
+class ExtendedQuerySet(QuerySet):
+
+    def update_or_create(self, **kwargs):
+        obj, created = self.get_or_create(**kwargs)
+
+        if not created:
+            fields = dict(kwargs.pop("defaults", {}))
+            fields.update(kwargs)
+            update_with_dict(obj, fields)
+
+        return obj
+
+
+class ExtendedManager(models.Manager):
+
+    def get_query_set(self):
+        return ExtendedQuerySet(self.model)
+
+    def upate_or_create(self, **kwargs):
+        update_method = self._update_or_create
+        if kwargs.pop("exception_retry", False):
+            update_method = self._update_or_create_safe
+        return update_method(**kwargs)
+
+    def _update_or_create(self, **kwargs):
+        return self.get_query_set().update_or_create(**kwargs)
+
+    def _update_or_create_safe(self, **kwargs):
+        try:
+            return self._update_or_create(**kwargs)
+        except Exception, exc:
+            # depending on the database backend we can get various exceptions.
+            # for excample, psycopg2 raises an exception if some operation
+            # breaks transaction, and saving task result won't be possible
+            # until we rollback transaction
+            transaction.rollback_unless_managed()
+            self._update_or_create(**kwargs)
+
+
 class TableLock(object):
     """Base class for database table locks. Also works as a NOOP lock."""
 
@@ -59,7 +104,7 @@ class MySQLTableLock(TableLock):
 TABLE_LOCK_FOR_ENGINE = {"mysql": MySQLTableLock}
 table_lock = TABLE_LOCK_FOR_ENGINE.get(settings.DATABASE_ENGINE, TableLock)
 
-class TaskManager(models.Manager):
+class TaskManager(ExtendedManager):
     """Manager for :class:`celery.models.Task` models."""
 
     def get_task(self, task_id):
@@ -98,28 +143,13 @@ class TaskManager(models.Manager):
         :keyword exception_retry: If True, we try a single retry with
             transaction rollback on exception
         """
-        try:
-            task, created = self.get_or_create(task_id=task_id, defaults={
-                                                "status": status,
-                                                "result": result,
-                                                "traceback": traceback})
-            if not created:
-                task.status = status
-                task.result = result
-                task.traceback = traceback
-                task.save()
-        except Exception, exc:
-            # depending on the database backend we can get various exceptions.
-            # for excample, psycopg2 raises an exception if some operation
-            # breaks transaction, and saving task result won't be possible
-            # until we rollback transaction
-            if exception_retry:
-                transaction.rollback_unless_managed()
-                self.store_result(task_id, result, status, traceback, False)
-            else:
-                raise
+        self.update_or_create(task_id=task_id,
+                              exception_retry=exception_retry,
+                              defaults={"status": status,
+                                        "result": result,
+                                        "traceback": traceback})
 
-class TaskSetManager(models.Manager):
+class TaskSetManager(ExtendedManager):
     """Manager for :class:`celery.models.TaskSet` models."""
 
     def get_all_expired(self):
@@ -137,6 +167,17 @@ class TaskSetManager(models.Manager):
         except self.model.DoesNotExist:
             return None
 
+    def store_task_ids(self, taskset_id, task_ids, exception_retry=True):
+        """Store the task ids associated with a taskset.
+
+        :param taskset_id: task set id.
+        :param task_ids: the list of task ids
+
+        """
+        self.update_or_create(taskset_id=taskset_id,
+                              exception_retry=exception_retry,
+                              defaults={"task_ids": task_ids})
+
     def store_result(self, taskset_id, result, exception_retry=True):
         """Store the result of a taskset.
 
@@ -145,22 +186,9 @@ class TaskSetManager(models.Manager):
         :param result: The return value of the taskset
 
         """
-        try:
-            taskset, created = self.get_or_create(taskset_id=taskset_id, defaults={
-                                                "result": result})
-            if not created:
-                taskset.result = result
-                taskset.save()
-        except Exception, exc:
-            # depending on the database backend we can get various exceptions.
-            # for excample, psycopg2 raises an exception if some operation
-            # breaks transaction, and saving task result won't be possible
-            # until we rollback transaction
-            if exception_retry:
-                transaction.rollback_unless_managed()
-                self.store_result(taskset_id, result, False)
-            else:
-                raise
+        self.update_or_create(taskset_id=taskset_id,
+                              exception_retry=exception_retry,
+                              defaults={"result": result})
 
 
 class PeriodicTaskManager(models.Manager):

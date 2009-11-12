@@ -43,6 +43,7 @@ class TaskMeta(models.Model):
 class TaskSetMeta(models.Model):
     """TaskSet result"""
     taskset_id = models.CharField(_(u"task id"), max_length=255, unique=True)
+    task_ids = PickledObjectField()
     result = PickledObjectField()
     date_done = models.DateTimeField(_(u"done at"), auto_now=True)
 

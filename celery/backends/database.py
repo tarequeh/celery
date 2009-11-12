@@ -45,6 +45,10 @@ class Backend(BaseBackend):
         TaskSetMeta.objects.store_result(taskset_id, result)
         return result
 
+    def store_taskset_task_ids(self, taskset_id, task_ids):
+        """Store the list of task ids associated with a taskset."""
+        TaskSetMeta.objects.store_task_ids(taskset_id, task_ids)
+
     def is_done(self, task_id):
         """Returns ``True`` if task with ``task_id`` has been executed."""
         return self.get_status(task_id) == "DONE"
@@ -80,6 +84,12 @@ class Backend(BaseBackend):
         if meta:
             return meta.result
 
+    def get_taskset_task_ids(self, taskset_id):
+        """Get the list of task ids associated with a task set."""
+        meta = self._get_taskset_meta_for(taskset_id)
+        if meta:
+            return meta.task_ids
+
     def _get_taskset_meta_for(self, taskset_id):
         """Get taskset metadata for a taskset by id."""
         if taskset_id in self._cache:
@@ -93,4 +103,3 @@ class Backend(BaseBackend):
         """Delete expired metadata."""
         TaskMeta.objects.delete_expired()
         TaskSetMeta.objects.delete_expired()
-

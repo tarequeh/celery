@@ -169,8 +169,10 @@ class TaskSetResult(object):
         A list of :class:`AsyncResult` instances for all of the subtasks.
 
     """
+    backend = default_backend
 
-    def __init__(self, taskset_id, subtasks):
+    def __init__(self, taskset_id, subtasks, backend=None):
+        self.backend = backend or self.backend
         self.taskset_id = taskset_id
         self.subtasks = subtasks
 
@@ -292,6 +294,15 @@ class TaskSetResult(object):
                 if timeout is not None and \
                         time.time() >= time_start + timeout:
                     on_timeout()
+
+    def save(self):
+        subtask_ids = [subtask.task_id for subtask in self.subtasks]
+        self.backend.store_taskset_task_ids(self.taskset_id, subtask_ids)
+
+    @classmethod
+    def restore(cls, taskset_id):
+        subtask_ids = default_backend.get_taskset_task_ids(taskset_id) or []
+        return cls(taskset_id, map(AsyncResult, subtask_ids))
 
     @property
     def total(self):

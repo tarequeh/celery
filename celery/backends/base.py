@@ -110,13 +110,20 @@ class BaseBackend(object):
         raise NotImplementedError(
                 "store_taskset is not supported by this backend.")
 
-    def get_taskset(self, task_id):
+    def get_taskset(self, taskset_id):
         """Get the result of a taskset."""
         raise NotImplementedError(
                 "get_taskset is not supported by this backend.")
 
+    def get_taskset_task_ids(self, taskset_id):
+        """Get the list of task ids associated with a task set."""
+        raise NotImplementedError(
+                "get_taskset_task_ids is not supported by this backend.")
 
-
+    def store_taskset_task_ids(self, taskset_id, task_ids):
+        """Store the list of task ids associated with a task set."""
+        raise NotImplementedError(
+                "store_taskset_task_ids is not supported by this backend.")
 
 
 class KeyValueStoreBackend(BaseBackend):
@@ -130,6 +137,10 @@ class KeyValueStoreBackend(BaseBackend):
     def get_cache_key_for_task(self, task_id):
         """Get the cache key for a task by id."""
         return "celery-task-meta-%s" % task_id
+
+    def get_cache_key_for_taskset_list(self, taskset_id):
+        """Get the cache key for a taskset list."""
+        return "celery-taskset-meta-task_ids-%s" % taskset_id
 
     def get(self, key):
         raise NotImplementedError("Must implement the get method.")
@@ -179,3 +190,11 @@ class KeyValueStoreBackend(BaseBackend):
         if meta.get("status") == "DONE":
             self._cache[task_id] = meta
         return meta
+
+    def get_taskset_task_ids(self, taskset_id):
+        """Get list of task ids associated with a task set."""
+        return self.get(self.get_cache_key_for_taskset_list(taskset_id))
+
+    def store_taskset_task_ids(self, taskset_id, task_ids):
+        self.set(self.get_cache_key_for_taskset_list(taskset_id), task_ids)
+
