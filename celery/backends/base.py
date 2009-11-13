@@ -142,6 +142,9 @@ class KeyValueStoreBackend(BaseBackend):
         """Get the cache key for a taskset list."""
         return "celery-taskset-meta-task_ids-%s" % taskset_id
 
+    def get_cache_key_for_taskset_result(self, taskset_id):
+        return "celery-tskset-meta-result-%s" % taskset_id
+
     def get(self, key):
         raise NotImplementedError("Must implement the get method.")
 
@@ -198,3 +201,12 @@ class KeyValueStoreBackend(BaseBackend):
     def store_taskset_task_ids(self, taskset_id, task_ids):
         self.set(self.get_cache_key_for_taskset_list(taskset_id), task_ids)
 
+    def store_taskset(self, taskset_id, result):
+        """Store the result and status of a task."""
+        raise NotImplementedError(
+                "get_taskset is not supported by this backend.")
+
+    def get_taskset(self, taskset_id):
+        """Get the result of a taskset."""
+        raise NotImplementedError(
+                "get_taskset is not supported by this backend.")
