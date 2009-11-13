@@ -40,6 +40,7 @@ class TaskMeta(models.Model):
     def __unicode__(self):
         return u"<Task: %s done:%s>" % (self.task_id, self.status)
 
+
 class TaskSetMeta(models.Model):
     """TaskSet result"""
     taskset_id = models.CharField(_(u"task id"), max_length=255, unique=True)

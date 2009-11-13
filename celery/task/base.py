@@ -542,7 +542,7 @@ class TaskSet(object):
         publisher.close()
         conn.close()
         result = TaskSetResult(taskset_id, subtasks)
-        default_backend.store_taskset(taskset_id, result)
+        default_backend.store_taskset_result(taskset_id, result)
         return result
 
     def join(self, timeout=None):

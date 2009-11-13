@@ -37,7 +37,7 @@ class Backend(BaseBackend):
                                       traceback=traceback)
         return result
 
-    def store_taskset(self, taskset_id, result):
+    def store_taskset_result(self, taskset_id, result):
         """Store the result of an executed taskset."""
         TaskSetMeta.objects.store_result(taskset_id, result)
         return result
@@ -75,7 +75,7 @@ class Backend(BaseBackend):
             self._cache[task_id] = meta
         return meta
 
-    def get_taskset(self, taskset_id):
+    def get_taskset_result(self, taskset_id):
         """Get the result for a taskset."""
         meta = self._get_taskset_meta_for(taskset_id)
         if meta:

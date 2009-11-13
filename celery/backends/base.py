@@ -111,15 +111,15 @@ class BaseBackend(object):
         """
         pass
 
-    def store_taskset(self, taskset_id, result):
-        """Store the result and status of a task."""
+    def store_taskset_result(self, taskset_id, result):
+        """Store the result of a taskset."""
         raise NotImplementedError(
-                "store_taskset is not supported by this backend.")
+                "store_taskset_result is not supported by this backend.")
 
-    def get_taskset(self, taskset_id):
+    def get_taskset_result(self, taskset_id):
         """Get the result of a taskset."""
         raise NotImplementedError(
-                "get_taskset is not supported by this backend.")
+                "get_taskset_result is not supported by this backend.")
 
     def get_taskset_task_ids(self, taskset_id):
         """Get the list of task ids associated with a task set."""
@@ -204,12 +204,12 @@ class KeyValueStoreBackend(BaseBackend):
     def store_taskset_task_ids(self, taskset_id, task_ids):
         self.set(self.get_cache_key_for_taskset_list(taskset_id), task_ids)
 
-    def store_taskset(self, taskset_id, result):
+    def store_taskset_result(self, taskset_id, result):
         """Store the result and status of a task."""
-        raise NotImplementedError(
-                "get_taskset is not supported by this backend.")
+        self.set(self.get_cache_key_for_taskset_result(taskset_id),
+                 pickle.dumps(result))
 
-    def get_taskset(self, taskset_id):
+    def get_taskset_result(self, taskset_id):
         """Get the result of a taskset."""
-        raise NotImplementedError(
-                "get_taskset is not supported by this backend.")
+        d = self.get(self.get_cache_key_for_taskset_result(taskset_id))
+        return d and pickle.loads(d) or None
