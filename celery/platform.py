@@ -61,7 +61,8 @@ def acquire_pidlock(pidfile):
         def release(self):
             if self.i_am_locking():
                 maybe_remove_file(self.path, ignore_perm_denied=True)
-            LinkFileLock.release(self)
+            maybe_remove_file(self.unique_name, ignore_perm_denied=True)
+            maybe_remove_file(self.lock_file, ignore_perm_denied=True)
 
     pidlock = SafeRemovePIDLockFile(pidfile)
     if not pidlock.is_locked():
