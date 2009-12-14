@@ -3,6 +3,7 @@ import sys
 import pwd
 import grp
 import signal
+import errno
 try:
     from setproctitle import setproctitle as _setproctitle
 except ImportError:
@@ -54,7 +55,6 @@ def acquire_pidlock(pidfile):
     """
     from daemon.pidlockfile import PIDLockFile as _PIDLockFile
     from lockfile import LinkFileLock
-    import errno
 
     class SafeRemovePIDLockFile(_PIDLockFile):
 
