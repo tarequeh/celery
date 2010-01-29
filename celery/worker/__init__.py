@@ -116,13 +116,21 @@ class AMQPListener(object):
     def close_connection(self):
         """Close the AMQP connection."""
         if self.task_consumer:
-            self.task_consumer.close()
-            self.task_consumer = None
+            try:
+                self.task_consumer.close()
+            except Exception, e:
+                self.logger.error("AMQPListener: Failed to close connection: %s" % e)
+            finally:
+                self.task_consumer = None
+
         if self.amqp_connection:
-            self.logger.debug(
-                    "AMQPListener: Closing connection to the broker...")
-            self.amqp_connection.close()
-            self.amqp_connection = None
+            self.logger.debug("AMQPListener: Closing connection to the broker...")
+            try:
+                self.amqp_connection.close()
+            except Exception, e:
+                self.logger.error("AMQPListener: Failed to close connection: %s" % e)
+            finally:
+                self.amqp_connection = None
 
     def reset_connection(self):
         """Reset the AMQP connection, and reinitialize the

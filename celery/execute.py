@@ -99,7 +99,11 @@ def apply_async(task, args=None, kwargs=None, countdown=None, eta=None,
             connection = DjangoBrokerConnection(
                             connect_timeout=connect_timeout)
             need_to_close_connection = True
-        publisher = TaskPublisher(connection=connection)
+        try:
+            publisher = TaskPublisher(connection=connection)
+        except Exception, e:
+            return None
+
 
     delay_task = publisher.delay_task
     if taskset_id:
