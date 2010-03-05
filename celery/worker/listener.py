@@ -179,7 +179,12 @@ class CarrotListener(object):
     def reset_connection(self):
         self.logger.debug(
                 "CarrotListener: Re-establishing connection to the broker...")
-        self.close_connection()
+        try:
+            self.close_connection()
+        except Exception, e:
+            self.logger.info(
+                    "CarrotListener: Error closing connection. Connection may have been closed abruptly.")
+
         self.connection = self._open_connection()
         self.logger.debug("CarrotListener: Connection Established.")
         self.task_consumer = get_consumer_set(connection=self.connection)
